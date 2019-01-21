@@ -1,13 +1,13 @@
 # Final_facerecognition
 libs:
-1) For Detection device:
+1)For Detection device:
   from PIL import Image
   import face_recognition
   import os
   import cv2
   import sqlite3
   import pika
-2) For Server:
+2)For Server:
   import sqlite3
   import numpy as np
   import face_recognition

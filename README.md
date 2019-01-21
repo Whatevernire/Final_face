@@ -1,21 +1,21 @@
 # Final_facerecognition
-libs:
-1)For Detection device:
-  from PIL import Image
-  import face_recognition
-  import os
-  import cv2
-  import sqlite3
-  import pika
-2)For Server:
-  import sqlite3
-  import numpy as np
-  import face_recognition
-  import time
-  import cv2
-  from PIL import Image
-  import os
-  import pika
+Библиотеки:
+For Detection device:
+from PIL import Image;
+import face_recognition;
+import os;
+import cv2;
+import sqlite3;
+import pika;
+For Server:
+import sqlite3;
+import numpy as np;
+import face_recognition;
+import time;
+import cv2;
+from PIL import Image;
+import os;
+import pika;
 Как это работает: 
 1) Добавляем лица:
    Ложим своих людей в папку "faces", затем запускаем Client.py и вписываем имя человека и местоположение его фото (Например    "faces/Jeki.jpg).

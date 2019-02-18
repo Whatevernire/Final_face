@@ -1,12 +1,21 @@
-import sqlite3
-import numpy as np
-import face_recognition
-import time
 import cv2
 from PIL import Image
-import os
-import pika
+import face_recognition
+import time
+import numpy as np
+import  sqlite3
+mport socket 
 
+#ставим сервер на распберри
+TCP_IP = '127.0.1.1' 
+TCP_PORT = 5002 
+BUFFER_SIZE = 1024 # Надо выбрать получше, для быстрого ответа 
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+s.bind((TCP_IP, TCP_PORT)) 
+s.listen(1) 
+
+# Подключаемся к базе и создаем курсор
 conn = sqlite3.connect('new2.db')
 cur = conn.cursor()
 
@@ -17,6 +26,7 @@ baza_lic_res = []
 c4et4ik = True
 
 # Выгружаем все имена из базы данных
+
 cur.execute('''select count(names) from face''')
 kolichestvo_imen = cur.fetchone()
 len_imena = kolichestvo_imen[0]
@@ -24,7 +34,9 @@ cur.execute('''select names from face''')
 for i in range(len_imena):
     imya = cur.fetchone()
     imena.append(imya[0])
+
 # Выгружаем все коды людей из базы
+
 cur.execute('''select count(code) from face''')
 kolichestvo_imen = cur.fetchone()
 len_imena = kolichestvo_imen[0]
@@ -41,60 +53,38 @@ for i in range(len_imena):
     asd = np.array(baza_lic_res)
     baza_lic_res = []
     baza_lic.append(asd)
+
 faaace = []
 faace_res = []
+# multiple cascades: https://github.com/Itseez/opencv/tree/master/data/haarcascades
+faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
-face_bytes = 0
-width_int = 0
-hight_int = 0
-face = 0
-width = 0
-hight = 0
-c4et = 0
+cap = cv2.VideoCapture(0)
 
 
-def callback(ch, method, properties, body):
-    text = str(body.decode())
-    print(text)
-    if c4et == 0:
-        face = body
-    elif c4et == 1:
-        width = int(body.decode())
-    elif c4et == 2:
-        hight = int(body.decode())
-    elif c4et == 3:
-        b = Image.frombytes(mode='RGB', size=(hight, width), data=face)
-        # Переводим фото в формат для работы с библиотекой face_recognition
-        unknown_face = np.array(b)
-        # Для примера берем последнее лицо.
-        Unknown = face_recognition.face_encodings(unknown_face)
-        q = face_recognition.compare_faces(baza_lic, Unknown, tolerance=0.4)
-        imya_output = "unknown"
-        if q == True:
-            index_lica = q.index(True)
+while True:
+    conn, addr = s.accept() 
+    print ('Connection address:', addr) 
+    while 1: 
+        data = conn.recv(BUFFER_SIZE) 
+    if not data: break 
+        print ("received data:", data) 
+    start = time.time()  
+    pix = np.array(data)
+    encode = face_recognition.face_encodings(pix)
+    if len(encode)>0:
+        face_recognition_try = face_recognition.compare_faces(baza_lic, encode[0], tolerance=0.4)
+        imya_output = 'Unknown'
+        print(face_recognition_try)
+        if True in face_recognition_try:
+            index_lica = face_recognition_try.index(True)
             name = imena[index_lica]
             print(name)
         else:
             print(imya_output)
-        width = 0
-        face = 0
-        hight = 0
-        c4et = 0
+    print(start - time.time())
 
 
-channel.basic_consume(callback,
-                      queue='face',
-                      no_ack=True)
-channel.basic_consume(callback,
-                      queue='width',
-                      no_ack=True)
 
-channel.basic_consume(callback,
-                      queue='hight',
-                      no_ack=True)
-
-print(' [*] Waiting for messages. To exit press CTRL+C')
-
-
-conn.commit()
-channel.start_consuming()
+cap.release()
+cv2.destroyAllWindows()
